@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body { font-family:Poppins,sans-serif; background:#f4f4f4; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+    .container { background:#fff; padding:30px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px; }
+    h2 { text-align:center; margin-bottom:20px; }
+    input, select, button { width:100%; padding:10px; margin:8px 0; border-radius:5px; border:1px solid #ccc; }
+    button { background:#4b6cb7; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#3a539b; }
+    p { text-align:center; margin-top:10px; }
+    a { color:#4b6cb7; text-decoration:none; }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Login</h2>
+
+  <input type="email" id="loginEmail" placeholder="Email">
+  <input type="password" id="loginPassword" placeholder="Password">
+
+  <button id="loginBtn">Login</button>
+  <p>Don't have an account? <a href="register.html">Register</a></p>
+</div>
+
+<script>
+document.getElementById("loginBtn").addEventListener("click", () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  if (!email || !password) {
+    alert("Enter both email and password!");
+    return;
+  }
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  const user = users.find(u => u.email === email && u.password === password);
+
+  if (!user) {
+    alert("Invalid login!");
+    return;
+  }
+
+  localStorage.setItem("currentUser", email);
+  window.location.href = "profile.html";
+});
+</script>
+
+</body>
+</html>

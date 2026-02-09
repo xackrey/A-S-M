@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activities</title>
+
+<link rel="stylesheet" href="design.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body { margin:0; font-family:'Poppins',sans-serif; display:flex; min-height:100vh; background:#f4f4f4; }
+/* Sidebar */
+aside.sidebar { width:220px; background:#4b6cb7; color:#fff; display:flex; flex-direction:column; height:100vh; padding-top:20px; }
+aside.sidebar .logo h2 { text-align:center; margin-bottom:30px; }
+aside.sidebar ul.menu { list-style:none; padding:0; }
+aside.sidebar ul.menu li { padding:15px 20px; }
+aside.sidebar ul.menu li.active, aside.sidebar ul.menu li:hover { background: rgba(255,255,255,0.2); border-radius:8px; }
+aside.sidebar ul.menu li a { color:#fff; text-decoration:none; display:flex; align-items:center; gap:10px; }
+
+/* Main content */
+main.content { flex:1; padding:20px; overflow:auto; display:flex; flex-direction:column; }
+h2.page-title { text-align:center; margin-bottom:20px; color:#333; }
+
+/* Section selector */
+.input-box { display:flex; justify-content:center; margin-bottom:20px; gap:10px; }
+select { padding:8px; font-size:16px; border-radius:5px; border:1px solid #ccc; }
+
+/* Two column layout */
+.flex-container { display:flex; gap:20px; flex-wrap:wrap; }
+
+/* Left column */
+.left-column { flex:1; min-width:300px; }
+.chart-container { background:#fff; border-radius:10px; padding:15px; margin-bottom:20px; }
+canvas { width:100% !important; height:300px !important; }
+
+/* Lists */
+.student-list { display:flex; justify-content:space-between; gap:10px; }
+.student-list div { flex:1; background:#fff; padding:10px; border-radius:10px; }
+.student-list h3 { text-align:center; margin-bottom:10px; }
+.student-list ol { padding-left:20px; min-height:50px; }
+.student-list li { padding:3px 5px; margin-bottom:3px; border-radius:3px; background:#eee; cursor:pointer; }
+.student-list li:hover { background:#d1d1d1; }
+
+/* Right column table */
+.right-column { flex:2; min-width:400px; background:#fff; border-radius:10px; padding:15px; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:10px; border:1px solid #ccc; text-align:left; }
+thead { background:#4b6cb7; color:#fff; }
+tbody tr:nth-child(even){background:#f9f9f9;}
+tbody tr:hover {background:#dce0f0;}
+input[type=checkbox]{transform:scale(1.2); cursor:pointer;}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+  <div class="logo"><h2>A.S.M</h2></div>
+  <ul class="menu">
+    <li class="active"><a href="activities.html"><i class="fas fa-user"></i><span>Activities</span></a></li>
+    <li><a href="profile.html"><i class="fas fa-star"></i><span>Profile</span></a></li>
+    <li><a href="suggestion.html"><i class="fas fa-comment-alt"></i><span>Suggestion</span></a></li>
+    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
+  </ul>
+</aside>
+
+<main class="content">
+<h2 class="page-title">Manage Student Submissions</h2>
+
+<div class="input-box">
+  <select id="sectionSelect">
+    <option value="Swift">Swift</option>
+    <option value="Hasket">Hasket</option>
+    <option value="Fortran">Fortran</option>
+    <option value="Dart">Dart</option>
+  </select>
+</div>
+
+<div class="flex-container">
+  <!-- LEFT: Pie chart + Submitted / Not Submitted lists -->
+  <div class="left-column">
+    <div class="chart-container">
+      <canvas id="sectionChart"></canvas>
+    </div>
+
+    <div class="student-list">
+      <div>
+        <h3>Submitted</h3>
+        <ol id="submittedList"></ol>
+      </div>
+      <div>
+        <h3>Not Submitted</h3>
+        <ol id="notSubmittedList"></ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Student table -->
+  <div class="right-column">
+    <h3>All Students</h3>
+    <table id="studentTable">
+      <thead>
+        <tr>
+          
+          <th>Name</th>
+          <th>Section</th>
+          <th>Email</th>
+          <th>Grade Level</th>
+          <th>Activity 1</th>
+          <th>Activity 2</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let sectionsData = JSON.parse(localStorage.getItem('sectionsData')) || {
+  "Swift": { submitted: [], notSubmitted: [] },
+  "Hasket": { submitted: [], notSubmitted: [] },
+  "Fortran": { submitted: [], notSubmitted: [] },
+  "Dart": { submitted: [], notSubmitted: [] }
+};
+
+// Sample students list
+let students = JSON.parse(localStorage.getItem('students')) || [
+  {name:"Alice", section:"Swift", email:"alice@mail.com", grade:"Grade 10", submitted:false, submitted:false},
+  {name:"Bob", section:"Swift", email:"bob@mail.com", grade:"Grade 10", submitted:false, comment:""},
+  {name:"Charlie", section:"Hasket", email:"charlie@mail.com", grade:"Grade 11", submitted:false, comment:""}
+];
+
+const colors = ['#5f6cff','#b85cff'];
+const ctx = document.getElementById('sectionChart').getContext('2d');
+const sectionChart = new Chart(ctx,{
+  type:'pie',
+  data:{ labels:['Submitted','Not Submitted'], datasets:[{ label:'Students', data:[0,0], backgroundColor:colors }] },
+  options:{ responsive:true, plugins:{ legend:{position:'bottom'}, title:{display:true,text:'Section Activity', font:{size:18}} } }
+});
+
+const submittedList = document.getElementById('submittedList');
+const notSubmittedList = document.getElementById('notSubmittedList');
+const sectionSelect = document.getElementById('sectionSelect');
+const studentTable = document.getElementById('studentTable').querySelector('tbody');
+
+function render(){
+  const section = sectionSelect.value;
+  const sectionStudents = students.filter(s=>s.section===section);
+
+  // Update submitted / not submitted lists
+  submittedList.innerHTML=''; notSubmittedList.innerHTML='';
+  sectionStudents.filter(s=>s.submitted).forEach((s,i)=>{
+    submittedList.innerHTML += `<li>${i+1}. ${s.name}</li>`;
+  });
+  sectionStudents.filter(s=>!s.submitted).forEach((s,i)=>{
+    notSubmittedList.innerHTML += `<li>${i+1}. ${s.name}</li>`;
+  });
+
+  // Update pie chart
+  sectionChart.data.datasets[0].data = [
+    sectionStudents.filter(s=>s.submitted).length,
+    sectionStudents.filter(s=>!s.submitted).length
+  ];
+  sectionChart.options.plugins.title.text = `${section} Section Activity`;
+  sectionChart.update();
+
+  // Update table
+  studentTable.innerHTML='';
+  students.sort((a,b)=>{
+    if(a.name.toLowerCase()===b.name.toLowerCase()) return a.section.localeCompare(b.section);
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  }).forEach((s,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+                  <td>${s.name}</td>
+                  <td>${s.section}</td>
+                  <td>${s.email}</td>
+                  <td>${s.grade}</td>
+                  <td><input type="checkbox" ${s.submitted?'checked':''} onclick="toggleSubmit('${s.name}')"></td>
+                  <td><input type="checkbox" ${s.submitted?'checked':''} onclick="toggleSubmit('${s.name}')"></td>`;
+    studentTable.appendChild(tr);
+  });
+
+  localStorage.setItem('students',JSON.stringify(students));
+  localStorage.setItem('sectionsData',JSON.stringify(sectionsData));
+}
+
+function toggleSubmit(name){
+  const student = students.find(s=>s.name===name);
+  if(student){ student.submitted = !student.submitted; render(); }
+}
+
+function updateComment(name,value){
+  const student = students.find(s=>s.name===name);
+  if(student){ student.comment=value; render(); }
+}
+
+sectionSelect.addEventListener('change', render);
+render();
+
+function logout(){
+  localStorage.removeItem('currentUser');
+  window.location.href='login.html';
+}
+</script>
+</body>
+</html>

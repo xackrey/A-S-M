@@ -1,0 +1,77 @@
+/* common/reset + fonts */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", serif;
+}
+
+body {
+    min-height: 100vh;
+    color: #333;
+}
+
+/* container for login/register */
+.container {
+    margin: 0 15px;
+    width: 100%;
+    max-width: 450px;
+}
+
+/* FORM BOXES */
+.form-box {
+    width: 100%;
+    padding: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.form-box.active {
+    display: block;
+}
+
+h2 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    background: #eee;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #7494ec;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #fff;
+    margin-bottom: 20px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #6884d3;
+}
+
+p {
+    font-size: 14px;
+    text-align: center;
+}
+
+p a {
+    color: #7494ec;
+    text-decoration: none;
+}

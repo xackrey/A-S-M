@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suggestions</title>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+body { 
+  margin:0; 
+  font-family: 'Poppins', sans-serif; 
+  display:flex; 
+  min-height:100vh; 
+  background:#f4f4f4; 
+}
+
+/* Sidebar */
+aside.sidebar { 
+  width:220px; 
+  background:#4b6cb7; 
+  color:#fff; 
+  display:flex; 
+  flex-direction:column; 
+  height:100vh; 
+  padding-top:20px; 
+}
+aside.sidebar .logo h2 { text-align:center; margin-bottom:30px; }
+aside.sidebar ul.menu { list-style:none; padding:0; }
+aside.sidebar ul.menu li { padding:15px 20px; }
+aside.sidebar ul.menu li.active, aside.sidebar ul.menu li:hover { 
+  background: rgba(255,255,255,0.2); border-radius: 8px; 
+}
+aside.sidebar ul.menu li a { color:#fff; text-decoration:none; display:flex; align-items:center; gap:10px; }
+
+/* Main content */
+main.content { flex:1; padding:30px; }
+h2.page-title { text-align:center; margin-bottom:20px; color:#333; }
+
+/* Form */
+form { max-width:600px; margin:0 auto 30px auto; display:flex; flex-direction:column; gap:10px; }
+form input, form textarea { padding:10px; font-size:16px; border-radius:5px; border:1px solid #ccc; }
+form button { padding:10px; font-size:16px; border:none; border-radius:5px; background:#4b6cb7; color:#fff; cursor:pointer; }
+form button:hover { background:#3a539b; }
+
+/* Suggestions list */
+.suggestions { max-width:800px; margin:0 auto; display:flex; flex-direction:column; gap:15px; }
+.suggestion { background:#fff; padding:15px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.1); position:relative; }
+.suggestion h4 { margin:0 0 5px 0; }
+.suggestion p { margin:0 0 10px 0; }
+.suggestion button.delete-btn { 
+  position:absolute; top:10px; right:10px; background:#e74c3c; color:#fff; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;
+}
+.suggestion button.delete-btn:hover { background:#c0392b; }
+
+/* Comment section */
+.comments { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+.comment { background:#f0f0f0; padding:8px; border-radius:5px; display:flex; justify-content:space-between; align-items:center; }
+.comment button { background:#e74c3c; color:#fff; border:none; padding:2px 6px; border-radius:3px; cursor:pointer; }
+.comment button:hover { background:#c0392b; }
+
+.comment-form { display:flex; gap:5px; margin-top:5px; }
+.comment-form input { flex:1; padding:6px; border-radius:5px; border:1px solid #ccc; }
+.comment-form button { padding:6px 10px; border:none; background:#4b6cb7; color:#fff; border-radius:5px; cursor:pointer; }
+.comment-form button:hover { background:#3a539b; }
+
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo"><h2>A.S.M</h2></div>
+  <ul class="menu">
+    <li><a href="activities.html"><i class="fas fa-gauge"></i><span>Activities</span></a></li>
+    <li><a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a></li>
+    <li class="active"><a href="suggestion.html"><i class="fas fa-comment-alt"></i><span>Suggestions</span></a></li>
+    <li><a href="javascript:void(0)" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
+  </ul>
+</aside>
+
+<!-- Main content -->
+<main class="content">
+  <h2 class="page-title"> Suggestions</h2>
+
+  <!-- Add suggestion -->
+  <form id="suggestionForm">
+    <input type="text" id="userName" placeholder="Your Name" required>
+    <textarea id="userComment" rows="3" placeholder="Enter your suggestion..." required></textarea>
+    <button type="submit">Submit </button>
+  </form>
+
+  <div class="suggestions" id="suggestionsList"></div>
+</main>
+
+<script>
+// Load suggestions from localStorage
+let suggestions = JSON.parse(localStorage.getItem('suggestions')) || [];
+
+// Render suggestions with comments
+function renderSuggestions(){
+  const container = document.getElementById('suggestionsList');
+  container.innerHTML = '';
+
+  suggestions.forEach((s, index) => {
+    const div = document.createElement('div');
+    div.className = 'suggestion';
+    div.innerHTML = `
+      <button class="delete-btn" onclick="deleteSuggestion(${index})">Delete</button>
+      <h4>${s.name}</h4>
+      <p>${s.comment}</p>
+
+      <div class="comments" id="comments-${index}">
+        ${s.comments ? s.comments.map((c,i)=>`<div class="comment">${c}<button onclick="deleteComment(${index},${i})">X</button></div>`).join('') : ''}
+      </div>
+
+      <div class="comment-form">
+        <input type="text" id="commentInput-${index}" placeholder="Add a comment">
+        <button onclick="addComment(${index})">Add</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Add suggestion
+document.getElementById('suggestionForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('userName').value.trim();
+  const comment = document.getElementById('userComment').value.trim();
+  if(!name || !comment) return alert("Fill all fields");
+  suggestions.push({name, comment, comments:[]});
+  localStorage.setItem('suggestions', JSON.stringify(suggestions));
+  document.getElementById('userName').value = '';
+  document.getElementById('userComment').value = '';
+  renderSuggestions();
+});
+
+// Delete suggestion
+function deleteSuggestion(index){
+  if(confirm("Are you sure you want to delete this post?")){
+    suggestions.splice(index,1);
+    localStorage.setItem('suggestions', JSON.stringify(suggestions));
+    renderSuggestions();
+  }
+}
+
+// Add comment
+function addComment(postIndex){
+  const input = document.getElementById(`commentInput-${postIndex}`);
+  const commentText = input.value.trim();
+  if(!commentText) return;
+  suggestions[postIndex].comments.push(commentText);
+  localStorage.setItem('suggestions', JSON.stringify(suggestions));
+  input.value = '';
+  renderSuggestions();
+}
+
+// Delete comment
+function deleteComment(postIndex, commentIndex){
+  suggestions[postIndex].comments.splice(commentIndex,1);
+  localStorage.setItem('suggestions', JSON.stringify(suggestions));
+  renderSuggestions();
+}
+
+// Logout function
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+
+// Initial render
+renderSuggestions();
+</script>
+
+</body>
+</html>

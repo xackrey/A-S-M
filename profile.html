@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUDENT LIST</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="design.css">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* General layout */
+body {
+  margin:0;
+  font-family: 'Poppins', sans-serif;
+  display:flex;
+  min-height:100vh;
+  background:#f4f4f4;
+}
+
+/* Sidebar */
+aside.sidebar {
+  width:220px;
+  background:#4b6cb7;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  padding-top:20px;
+}
+aside.sidebar .logo h2 {
+  text-align:center;
+  margin-bottom:30px;
+}
+aside.sidebar ul.menu {
+  list-style:none;
+  padding:0;
+}
+aside.sidebar ul.menu li {
+  padding:15px 20px;
+}
+aside.sidebar ul.menu li.active,
+aside.sidebar ul.menu li:hover {
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+}
+aside.sidebar ul.menu li a {
+  color:#fff;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* Main content */
+main.main--content {
+  flex:1;
+  padding:30px;
+}
+
+/* Header */
+.header--wrapper {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.header--title h2 {
+  margin:0;
+  color:#333;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  font-smooth: always;
+}
+
+th, td {
+  padding:12px 15px;
+  text-align:left;
+}
+
+thead {
+  background: #4b6cb7;
+  color:#fff;
+}
+
+tbody tr:nth-child(even) {
+  background: #f0f0f0;
+}
+
+tbody tr:hover {
+  background: #dce0f0;
+}
+
+th {
+  cursor: pointer;
+}
+
+input, button {
+  padding:8px;
+  margin:5px 0;
+  font-size:14px;
+}
+
+button {
+  background:#4b6cb7;
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+button:hover {
+  background:#3a539b;
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo"><h2>A.S.M</h2></div>
+  <ul class="menu">
+    <li class="active"><a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a></li>
+    <li><a href="activities.html"><i class="fas fa-star"></i><span>Activities</span></a></li>
+    <li><a href="suggestion.html"><i class="fas fa-comment-alt"></i><span>Suggestion</span></a></li>
+    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></li>
+  </ul>
+</aside>
+
+<!-- Main content -->
+<main class="main--content">
+  <div class="header--wrapper">
+    <div class="header--title">
+      <span>Management</span>
+      <h2>STUDENT LIST</h2>
+    </div>
+  </div>
+
+  <!-- Add Student Form -->
+  <h3>Add Student</h3>
+  <input type="text" id="studentName" placeholder="Name" />
+  <input type="text" id="studentSection" placeholder="Section" />
+  <input type="text" id="studentEmail" placeholder="Email" />
+  <input type="text" id="studentGrade" placeholder="Grade Level" />
+  <button onclick="addStudent()">Add Student</button>
+
+  <!-- Student Table -->
+  <h3>Student Records</h3>
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Section</th>
+        <th>Email</th>
+        <th>Grade Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows will appear here -->
+    </tbody>
+  </table>
+</main>
+
+<script>
+let students = JSON.parse(localStorage.getItem('students')) || [];
+
+// Function to render table alphabetically by Name, then Section
+function renderTable(){
+  students.sort((a,b)=>{
+    if(a.name.toLowerCase() === b.name.toLowerCase()){
+      return a.section.localeCompare(b.section);
+    }
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+
+  const tbody = document.querySelector('#studentTable tbody');
+  tbody.innerHTML = '';
+  students.forEach(s=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.name}</td>
+      <td>${s.section}</td>
+      <td>${s.email}</td>
+      <td>${s.grade}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Add student function
+function addStudent(){
+  const name = document.getElementById('studentName').value.trim();
+  const section = document.getElementById('studentSection').value.trim();
+  const email = document.getElementById('studentEmail').value.trim();
+  const grade = document.getElementById('studentGrade').value.trim();
+
+  if(!name || !section || !email || !grade){
+    alert('Please fill all fields');
+    return;
+  }
+
+  students.push({name, section, email, grade});
+  localStorage.setItem('students', JSON.stringify(students));
+
+  // Clear input fields
+  document.getElementById('studentName').value='';
+  document.getElementById('studentSection').value='';
+  document.getElementById('studentEmail').value='';
+  document.getElementById('studentGrade').value='';
+
+  renderTable();
+}
+
+// Initial render
+renderTable();
+
+// Logout function
+function logout(){
+  localStorage.removeItem('currentUser'); // if used
+  window.location.href='login.html';
+}
+</script>
+
+</body>
+</html>
